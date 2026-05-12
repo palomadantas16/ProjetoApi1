@@ -1,65 +1,67 @@
-//  DECLARAÇÕES DOS ELEMENTOS USANDODOM (DOCUMENT OBJECT MODEL)
 
+// DECLARAÇÕES DO ELEMENTOS USANDO DOM(DOCUMENT OBJECT MODEL)
 const videoElemento = document.getElementById("video");
-const botaoScanear = document.getElementById("btn-texto");
-const resultado = document.getElementById("saida");
+const botaoScanear =document.getElementById("btn-texto");
+const resultado= document.getElementById("saida");
 const canvas = document.getElementById("canvas");
 
-// FUNÇÃO QUE VAI HABILITA A CÂMERA 
+//FUNÇÃO QUE VAI HABILITAR A CÂMERA
 
-async function configurarCamera(){ // async = assincrono
+async function configurarCamera(){
     try{
-        const midia = await navigator.midiaDevices.getUserMidia({
-            video: {facingMode: "environment"}, // habilita sua camera traseira
+        const midia = await navigator.mediaDevices.getUserMedia({
+            video:{facingMode: "environment"},//habilitando  a camera traseira
             audio: false
         })
-        videoElemento.srcObject - midia;
-        videoElemento.play(); // garante que o video comece
+        videoElemento.srcObject = midia;
+        videoElemento.play(); //garante que o video comece
     }catch(erro){
-        resultado.innerText="Erro ao acessar a câmera", erro;
+        resultado.innerText="Erro ao acessar a câmera",erro;
     }
 }
-
-// EXECUTA A FUNÇÃO DA CÂMERA
+//Exercuta a função da camera
 configurarCamera();
 
-// FUNÇÃO PARA LER O TEXTO DA IMAGEM E MOSTRAR NA TELA
+//função para ler o texto da imagem e mostrar na tela
 
 botaoScanear.onclick = async()=>{
-    botaoScanear.disable = true; 
-    resultado.innerText = "Fazendo a leitura, aguarde...";
+    botaoScanear.disable= true;// habilita o botão para ler o texto
+    resultado.innerText="Fazendo a leitura...aguarde";
 
-    // chama a estrutura do canvas 
+    // chama a estrutura do canvas
     const context = canvas.getContext("2d");
 
-    // ajusta o tamanho da tela 
-    canvas.width = videoElemento.videoWidth;
-    canvas.height = videoElemento.videoHeight;
+    //ajusta o tamanho da tela
+    canvas.width = videoElemento.videoWidth; // largura
+    canvas.height = videoElemento.videoHeight; //altura
 
-    // reset de qualquwr transformação para garantir que a foto não fique invertida
-    context.setTransform(1, 0, 1, 0, 0)
+    //reset de qualquer transformação para garantir que a foto não
+    //fique invertida
+    context.setTransform(1, 0, 1 ,0 ,0);
 
-    // Aplica o filtro de contraste e escala de cinza no canvas antes de tirar a foto (ajuda a evitar letras aleatórias)
+    //APlica o filtro de contraste e escala de cinza no canvas antes de 
+    //tirar a foto ( ajuda a evitar letras aleatórias)
     context.filter = 'contrast(1.2) grayscale(1)';
 
-    // contruindo tela para tirar foto
-    context.drawImage(videoElemento, 0, 0, canvas.width, canvas.height);
+    //construindo a tela para tirar a foto
+    context.drawImage(videoElemento, 0,0, canvas.width,canvas.height);
     try{
-        // captura o texto da imagem e traduz
+        //captura o texto da imagem e traduz para o portugues
         const {data: { text }} = await Tesseract.recognize(
-        canvas, 
-        'por'
+            canvas,
+            'por'
         );
+        //remove espaços excessivos e caracters especiais 
+        const textoFinal= text.trim();
+        //condicional ternaria ? if : else - se o texto for maior ok senão mensagem
+        resultado.innerText = textoFinal.length > 0 ? textoFinal : "Não foi possivel identificar o texto";
 
-        resultado.innerText = textoFinal.length > 0 ? textoFinal: "Não foi possível seu acesso"
     }catch(erro){
         console.error(erro);
-        resultado.innerText = "Erro ao processar.", erro;
+        resultado.innerText="Erro ao processar",erro;
     }finally{
-        // DESABILITA O BOTÃO PARA COMEÇAR NOVA LEITURA
-
-        botaoScanear.disable = false;
-
+        //Desabilita o botão para começar nova leitura
+        botaoScanear.disable=false;
     }
 
 }
